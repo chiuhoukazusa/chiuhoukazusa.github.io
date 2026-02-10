@@ -1,0 +1,225 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Perlin Noise 程序化纹理生成器 | Chiuhou个人博客</title><meta name="author" content="Chiuhou"><meta name="copyright" content="Chiuhou"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Perlin Noise 程序化纹理生成器本项目代码已托管至 GitHub每日编程实践项目，记录每天的编程学习和实践。 https:&#x2F;&#x2F;github.com&#x2F;chiuhoukazusa&#x2F;daily-coding-practice&#x2F;tree&#x2F;main&#x2F;2026-02-10-perlin-noise  项目简介今天实现了经典的 Perlin Noise 算法，用于生成自然的程序化纹理。这是图形学中非常">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Perlin Noise 程序化纹理生成器">
+<meta property="og:url" content="https://chiuhoukazusa.github.io/2026/02/10/perlin-noise/index.html">
+<meta property="og:site_name" content="Chiuhou个人博客">
+<meta property="og:description" content="Perlin Noise 程序化纹理生成器本项目代码已托管至 GitHub每日编程实践项目，记录每天的编程学习和实践。 https:&#x2F;&#x2F;github.com&#x2F;chiuhoukazusa&#x2F;daily-coding-practice&#x2F;tree&#x2F;main&#x2F;2026-02-10-perlin-noise  项目简介今天实现了经典的 Perlin Noise 算法，用于生成自然的程序化纹理。这是图形学中非常">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/chiuhoukazusa/blog_img/main/perlin-noise-2026-02-10/output_marble.png">
+<meta property="article:published_time" content="2026-02-10T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-02-10T08:40:15.933Z">
+<meta property="article:author" content="Chiuhou">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/chiuhoukazusa/blog_img/main/perlin-noise-2026-02-10/output_marble.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Perlin Noise 程序化纹理生成器",
+  "url": "https://chiuhoukazusa.github.io/2026/02/10/perlin-noise/",
+  "image": "https://raw.githubusercontent.com/chiuhoukazusa/blog_img/main/perlin-noise-2026-02-10/output_marble.png",
+  "datePublished": "2026-02-10T02:00:00.000Z",
+  "dateModified": "2026-02-10T08:40:15.933Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Chiuhou",
+      "url": "https://chiuhoukazusa.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://chiuhoukazusa.github.io/2026/02/10/perlin-noise/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Perlin Noise 程序化纹理生成器',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.1"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://raw.githubusercontent.com/chiuhoukazusa/blog_img/main/perlin-noise-2026-02-10/output_marble.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Chiuhou个人博客</span></a><a class="nav-page-title" href="/"><span class="site-name">Perlin Noise 程序化纹理生成器</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">Perlin Noise 程序化纹理生成器</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-02-10T02:00:00.000Z" title="发表于 2026-02-10 10:00:00">2026-02-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-10T08:40:15.933Z" title="更新于 2026-02-10 16:40:15">2026-02-10</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Perlin-Noise-程序化纹理生成器"><a href="#Perlin-Noise-程序化纹理生成器" class="headerlink" title="Perlin Noise 程序化纹理生成器"></a>Perlin Noise 程序化纹理生成器</h1><h2 id="本项目代码已托管至-GitHub"><a href="#本项目代码已托管至-GitHub" class="headerlink" title="本项目代码已托管至 GitHub"></a>本项目代码已托管至 GitHub</h2><p>每日编程实践项目，记录每天的编程学习和实践。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/chiuhoukazusa/daily-coding-practice/tree/main/2026-02-10-perlin-noise">https://github.com/chiuhoukazusa/daily-coding-practice/tree/main/2026-02-10-perlin-noise</a></p>
+<hr>
+<h2 id="项目简介"><a href="#项目简介" class="headerlink" title="项目简介"></a>项目简介</h2><p>今天实现了经典的 <strong>Perlin Noise 算法</strong>，用于生成自然的程序化纹理。这是图形学中非常重要的技术，可以生成云层、大理石、木纹等多种自然纹理。</p>
+<ul>
+<li><strong>开发时间</strong>：约 10 分钟</li>
+<li><strong>代码量</strong>：230 行 C++</li>
+<li><strong>编译状态</strong>：✅ 一次编译成功（0 错误 0 警告）</li>
+<li><strong>运行结果</strong>：✅ 成功生成 3 种纹理</li>
+</ul>
+<h2 id="技术要点"><a href="#技术要点" class="headerlink" title="技术要点"></a>技术要点</h2><h3 id="Perlin-Noise-算法"><a href="#Perlin-Noise-算法" class="headerlink" title="Perlin Noise 算法"></a>Perlin Noise 算法</h3><p>Perlin Noise 是由 Ken Perlin 在 1983 年发明的噪声生成算法，它能产生连续、自然的随机值。核心特点：</p>
+<ol>
+<li><strong>梯度噪声</strong>：基于网格点的随机梯度向量</li>
+<li><strong>平滑插值</strong>：使用 fade 函数（6t⁵ - 15t⁴ + 10t³）确保连续性</li>
+<li><strong>可重复性</strong>：使用排列表实现伪随机</li>
+</ol>
+<h3 id="Octave-Noise（多层噪声）"><a href="#Octave-Noise（多层噪声）" class="headerlink" title="Octave Noise（多层噪声）"></a>Octave Noise（多层噪声）</h3><p>通过叠加不同频率和振幅的噪声层，创造出更复杂的细节：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">double</span> <span class="title">octaveNoise</span><span class="params">(<span class="type">double</span> x, <span class="type">double</span> y, <span class="type">int</span> octaves, <span class="type">double</span> persistence)</span> </span>&#123;</span><br><span class="line">    <span class="type">double</span> total = <span class="number">0</span>;</span><br><span class="line">    <span class="type">double</span> frequency = <span class="number">1</span>;</span><br><span class="line">    <span class="type">double</span> amplitude = <span class="number">1</span>;</span><br><span class="line">    <span class="type">double</span> maxValue = <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; octaves; i++) &#123;</span><br><span class="line">        total += <span class="built_in">noise</span>(x * frequency, y * frequency) * amplitude;</span><br><span class="line">        maxValue += amplitude;</span><br><span class="line">        amplitude *= persistence;</span><br><span class="line">        frequency *= <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> total / maxValue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="三种纹理实现"><a href="#三种纹理实现" class="headerlink" title="三种纹理实现"></a>三种纹理实现</h3><ol>
+<li><strong>云层纹理</strong>：8 层噪声叠加，模拟自然云层的柔和渐变</li>
+<li><strong>大理石纹理</strong>：噪声 + 正弦波扰动，产生大理石的纹理效果</li>
+<li><strong>木纹纹理</strong>：径向距离 + 环状图案，模拟木材的年轮</li>
+</ol>
+<h2 id="生成效果"><a href="#生成效果" class="headerlink" title="生成效果"></a>生成效果</h2><h3 id="云层纹理"><a href="#云层纹理" class="headerlink" title="云层纹理"></a>云层纹理</h3><p><img src="https://raw.githubusercontent.com/chiuhoukazusa/blog_img/main/perlin-noise-2026-02-10/output_clouds.png" alt="云层纹理"></p>
+<h3 id="大理石纹理"><a href="#大理石纹理" class="headerlink" title="大理石纹理"></a>大理石纹理</h3><p><img src="https://raw.githubusercontent.com/chiuhoukazusa/blog_img/main/perlin-noise-2026-02-10/output_marble.png" alt="大理石纹理"></p>
+<h3 id="木纹纹理"><a href="#木纹纹理" class="headerlink" title="木纹纹理"></a>木纹纹理</h3><p><img src="https://raw.githubusercontent.com/chiuhoukazusa/blog_img/main/perlin-noise-2026-02-10/output_wood.png" alt="木纹纹理"></p>
+<h2 id="编译运行"><a href="#编译运行" class="headerlink" title="编译运行"></a>编译运行</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 编译</span></span><br><span class="line">g++ -std=c++17 -Wall -Wextra -O2 perlin_noise.cpp -o perlin_noise -lm</span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行</span></span><br><span class="line">./perlin_noise</span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出文件</span></span><br><span class="line"><span class="comment"># - output_clouds.ppm (云层纹理)</span></span><br><span class="line"><span class="comment"># - output_marble.ppm (大理石纹理)</span></span><br><span class="line"><span class="comment"># - output_wood.ppm (木纹纹理)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="核心代码"><a href="#核心代码" class="headerlink" title="核心代码"></a>核心代码</h2><h3 id="Fade-函数（平滑插值）"><a href="#Fade-函数（平滑插值）" class="headerlink" title="Fade 函数（平滑插值）"></a>Fade 函数（平滑插值）</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">double</span> <span class="title">fade</span><span class="params">(<span class="type">double</span> t)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> t * t * t * (t * (t * <span class="number">6</span> - <span class="number">15</span>) + <span class="number">10</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个函数确保了噪声值的平滑过渡，避免了明显的网格痕迹。</p>
+<h3 id="梯度计算"><a href="#梯度计算" class="headerlink" title="梯度计算"></a>梯度计算</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">double</span> <span class="title">grad</span><span class="params">(<span class="type">int</span> hash, <span class="type">double</span> x, <span class="type">double</span> y)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> h = hash &amp; <span class="number">3</span>;</span><br><span class="line">    <span class="type">double</span> u = h &lt; <span class="number">2</span> ? x : y;</span><br><span class="line">    <span class="type">double</span> v = h &lt; <span class="number">2</span> ? y : x;</span><br><span class="line">    <span class="keyword">return</span> ((h &amp; <span class="number">1</span>) ? -u : u) + ((h &amp; <span class="number">2</span>) ? -v : v);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>梯度函数根据哈希值选择不同的梯度方向，产生更自然的噪声分布。</p>
+<h3 id="Perlin-Noise-主函数"><a href="#Perlin-Noise-主函数" class="headerlink" title="Perlin Noise 主函数"></a>Perlin Noise 主函数</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">double</span> <span class="title">noise</span><span class="params">(<span class="type">double</span> x, <span class="type">double</span> y)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 找到单位网格的整数坐标</span></span><br><span class="line">    <span class="type">int</span> X = (<span class="type">int</span>)<span class="built_in">floor</span>(x) &amp; <span class="number">255</span>;</span><br><span class="line">    <span class="type">int</span> Y = (<span class="type">int</span>)<span class="built_in">floor</span>(y) &amp; <span class="number">255</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取相对坐标（0-1）</span></span><br><span class="line">    x -= <span class="built_in">floor</span>(x);</span><br><span class="line">    y -= <span class="built_in">floor</span>(y);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 计算 fade 曲线</span></span><br><span class="line">    <span class="type">double</span> u = <span class="built_in">fade</span>(x);</span><br><span class="line">    <span class="type">double</span> v = <span class="built_in">fade</span>(y);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 网格四个角的哈希值</span></span><br><span class="line">    <span class="type">int</span> A = p[X] + Y;</span><br><span class="line">    <span class="type">int</span> B = p[X + <span class="number">1</span>] + Y;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 双线性插值</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">lerp</span>(v, </span><br><span class="line">        <span class="built_in">lerp</span>(u, <span class="built_in">grad</span>(p[A], x, y), <span class="built_in">grad</span>(p[B], x - <span class="number">1</span>, y)),</span><br><span class="line">        <span class="built_in">lerp</span>(u, <span class="built_in">grad</span>(p[A + <span class="number">1</span>], x, y - <span class="number">1</span>), <span class="built_in">grad</span>(p[B + <span class="number">1</span>], x - <span class="number">1</span>, y - <span class="number">1</span>))</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="程序化纹理生成"><a href="#程序化纹理生成" class="headerlink" title="程序化纹理生成"></a>程序化纹理生成</h3><p><strong>云层纹理</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> octave = <span class="number">0</span>; octave &lt; <span class="number">8</span>; octave++) &#123;</span><br><span class="line">    <span class="type">double</span> frequency = <span class="built_in">pow</span>(<span class="number">2.0</span>, octave);</span><br><span class="line">    <span class="type">double</span> amplitude = <span class="built_in">pow</span>(persistence, octave);</span><br><span class="line">    value += <span class="built_in">noise</span>(x * frequency, y * frequency) * amplitude;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>大理石纹理</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">double</span> n = <span class="built_in">octaveNoise</span>(x * <span class="number">0.05</span>, y * <span class="number">0.05</span>, <span class="number">4</span>, <span class="number">0.5</span>);</span><br><span class="line"><span class="type">double</span> marble = <span class="built_in">sin</span>((x + n * <span class="number">100</span>) * <span class="number">0.1</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>木纹纹理</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">double</span> distance = <span class="built_in">sqrt</span>(dx * dx + dy * dy);</span><br><span class="line"><span class="type">double</span> n = <span class="built_in">octaveNoise</span>(x * <span class="number">0.02</span>, y * <span class="number">0.02</span>, <span class="number">4</span>, <span class="number">0.5</span>);</span><br><span class="line"><span class="type">double</span> wood = <span class="built_in">sin</span>((distance + n * <span class="number">20</span>) * <span class="number">0.5</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h2><ul>
+<li><strong>语言</strong>：C++17</li>
+<li><strong>编译器</strong>：g++ with -O2 optimization</li>
+<li><strong>输出格式</strong>：PPM (Portable Pixmap)</li>
+<li><strong>图片尺寸</strong>：512×512</li>
+</ul>
+<h2 id="学习收获"><a href="#学习收获" class="headerlink" title="学习收获"></a>学习收获</h2><ol>
+<li><strong>理解了 Perlin Noise 的核心原理</strong>：梯度噪声 + 平滑插值</li>
+<li><strong>掌握了 Octave Noise 技术</strong>：通过叠加不同频率的噪声创造细节</li>
+<li><strong>实践了程序化纹理生成</strong>：用数学公式创造自然纹理</li>
+<li><strong>优化了代码性能</strong>：使用排列表和位运算提升效率</li>
+</ol>
+<h2 id="下一步计划"><a href="#下一步计划" class="headerlink" title="下一步计划"></a>下一步计划</h2><ul>
+<li>扩展到 3D Perlin Noise</li>
+<li>实现 Simplex Noise（更高维度的改进版）</li>
+<li>尝试生成更多类型的纹理（如火焰、水面等）</li>
+<li>集成到图形渲染管线中</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://chiuhoukazusa.github.io">Chiuhou</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://chiuhoukazusa.github.io/2026/02/10/perlin-noise/">https://chiuhoukazusa.github.io/2026/02/10/perlin-noise/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://chiuhoukazusa.github.io" target="_blank">Chiuhou个人博客</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://raw.githubusercontent.com/chiuhoukazusa/blog_img/main/perlin-noise-2026-02-10/output_marble.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Chiuhou</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">1</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Perlin-Noise-%E7%A8%8B%E5%BA%8F%E5%8C%96%E7%BA%B9%E7%90%86%E7%94%9F%E6%88%90%E5%99%A8"><span class="toc-number">1.</span> <span class="toc-text">Perlin Noise 程序化纹理生成器</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E5%B7%B2%E6%89%98%E7%AE%A1%E8%87%B3-GitHub"><span class="toc-number">1.1.</span> <span class="toc-text">本项目代码已托管至 GitHub</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE%E7%AE%80%E4%BB%8B"><span class="toc-number">1.2.</span> <span class="toc-text">项目简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E8%A6%81%E7%82%B9"><span class="toc-number">1.3.</span> <span class="toc-text">技术要点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Perlin-Noise-%E7%AE%97%E6%B3%95"><span class="toc-number">1.3.1.</span> <span class="toc-text">Perlin Noise 算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Octave-Noise%EF%BC%88%E5%A4%9A%E5%B1%82%E5%99%AA%E5%A3%B0%EF%BC%89"><span class="toc-number">1.3.2.</span> <span class="toc-text">Octave Noise（多层噪声）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E7%A7%8D%E7%BA%B9%E7%90%86%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.3.3.</span> <span class="toc-text">三种纹理实现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E6%95%88%E6%9E%9C"><span class="toc-number">1.4.</span> <span class="toc-text">生成效果</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%91%E5%B1%82%E7%BA%B9%E7%90%86"><span class="toc-number">1.4.1.</span> <span class="toc-text">云层纹理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%A7%E7%90%86%E7%9F%B3%E7%BA%B9%E7%90%86"><span class="toc-number">1.4.2.</span> <span class="toc-text">大理石纹理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%A8%E7%BA%B9%E7%BA%B9%E7%90%86"><span class="toc-number">1.4.3.</span> <span class="toc-text">木纹纹理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E8%BF%90%E8%A1%8C"><span class="toc-number">1.5.</span> <span class="toc-text">编译运行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E4%BB%A3%E7%A0%81"><span class="toc-number">1.6.</span> <span class="toc-text">核心代码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Fade-%E5%87%BD%E6%95%B0%EF%BC%88%E5%B9%B3%E6%BB%91%E6%8F%92%E5%80%BC%EF%BC%89"><span class="toc-number">1.6.1.</span> <span class="toc-text">Fade 函数（平滑插值）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A2%AF%E5%BA%A6%E8%AE%A1%E7%AE%97"><span class="toc-number">1.6.2.</span> <span class="toc-text">梯度计算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Perlin-Noise-%E4%B8%BB%E5%87%BD%E6%95%B0"><span class="toc-number">1.6.3.</span> <span class="toc-text">Perlin Noise 主函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A8%8B%E5%BA%8F%E5%8C%96%E7%BA%B9%E7%90%86%E7%94%9F%E6%88%90"><span class="toc-number">1.6.4.</span> <span class="toc-text">程序化纹理生成</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E6%A0%88"><span class="toc-number">1.7.</span> <span class="toc-text">技术栈</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%A6%E4%B9%A0%E6%94%B6%E8%8E%B7"><span class="toc-number">1.8.</span> <span class="toc-text">学习收获</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%AE%A1%E5%88%92"><span class="toc-number">1.9.</span> <span class="toc-text">下一步计划</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/10/perlin-noise/" title="Perlin Noise 程序化纹理生成器"><img src="https://raw.githubusercontent.com/chiuhoukazusa/blog_img/main/perlin-noise-2026-02-10/output_marble.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Perlin Noise 程序化纹理生成器"/></a><div class="content"><a class="title" href="/2026/02/10/perlin-noise/" title="Perlin Noise 程序化纹理生成器">Perlin Noise 程序化纹理生成器</a><time datetime="2026-02-10T02:00:00.000Z" title="发表于 2026-02-10 10:00:00">2026-02-10</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Chiuhou</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.1</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
